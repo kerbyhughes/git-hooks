@@ -5,9 +5,9 @@
 # and warn on directives
 #
 reject="nocommit nocheckin"
-warn="@TODO TODO"
+warn="@TODO"
 
-staged_files=$(git diff --cached --name-status | awk '{print $2}')
+staged_files=$(git diff --cached --name-status | awk '$1 != "D" {print $2}')
 for file in $staged_files ; do
         for word in $reject
         do
