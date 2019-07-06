@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# ./git/hooks/pre-commit
+# Pre-commit checks to prevent custom strings from getting committed,
+# and warn on directives
+#
+reject="nocommit nocheckin"
+warn="@TODO TODO"
+
+staged_files=$(git diff --cached --name-status | awk '{print $2}')
+for file in $staged_files ; do
+        for word in $reject
+        do
+		lineno=$(grep -Ein $word $file | cut -f1 -d:)
+	        if [[ $lineno ]] ; then
+                	printf "\\n%s\n\n" "PRE-COMMIT REJECTED: \"${word}\" not allowed in file: ${file}:${lineno}"
+			git blame $file -L $lineno
+                	exit 1
+            	fi
+        done
+
+	for word in $warn
+	do
+		lineno=$(grep -Ein $word $file | cut -f1 -d:)
+		if [[ $lineno ]] ; then
+			printf "\\n%s\n\n" "PRE-COMMIT WARN: \"${word}\" found in file: ${file}:${lineno}"
+			git blame $file -L $lineno
+			read -p "Press return to continue" </dev/tty
+		fi
+
+	done
+done || exit $?
+
